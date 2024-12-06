@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจองทรัพยากร</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.11.3/main.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.11.3/main.min.js"></script>
+    <script src="resource_booking.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-900 min-h-screen text-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <!-- ส่วนหัว -->
+        <div class="flex justify-between items-center mb-8 bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700">
+            <div>
+                <h1 class="text-3xl font-bold text-white">ระบบจองทรัพยากร</h1>
+                <p class="text-gray-400 mt-1">จัดการการจองทรัพยากรของคุณ</p>
+            </div>
+            <button onclick="openModal()"
+                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center space-x-2 border border-blue-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                        clip-rule="evenodd" />
+                </svg>
+                <span>จองใหม่</span>
+            </button>
+        </div>
+
+        <!-- แถบค้นหาและตัวกรอง -->
+        <div class="bg-gray-800 p-6 rounded-xl shadow-lg mb-8 border border-gray-700">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <input type="text" id="searchInput" placeholder="ค้นหาทรัพยากร..."
+                        class="pl-10 w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white placeholder-gray-400"
+                        oninput="filterBookings()">
+                </div>
+
+                <select id="typeFilter"
+                    class="bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white"
+                    onchange="filterBookings()">
+                    <option value="">ทุกประเภท</option>
+                    <option value="vehicle">ยานพาหนะ</option>
+                    <option value="equipment">อุปกรณ์</option>
+                    <option value="staff">พนักงาน</option>
+                </select>
+
+                <select id="statusFilter"
+                    class="bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white"
+                    onchange="filterBookings()">
+                    <option value="">ทุกสถานะ</option>
+                    <option value="available">พร้อมใช้งาน</option>
+                    <option value="in-use">กำลังใช้งาน</option>
+                    <option value="scheduled">มีการจองแล้ว</option>
+                </select>
+
+                <button onclick="resetFilters()"
+                    class="text-gray-300 hover:text-white px-4 py-3 border border-gray-600 rounded-lg hover:bg-gray-700 transition-all duration-200">
+                    รีเซ็ตตัวกรอง
+                </button>
+            </div>
+        </div>
+
+        <!-- ตารางการจอง -->
+        <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-700">
+                    <thead class="bg-gray-900">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                ทรัพยากร
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                ประเภท
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                วันที่เริ่มต้น
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                วันที่สิ้นสุด
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                สถานะ
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                การจัดการ
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookingTable" class="divide-y divide-gray-700">
+                        <!-- ข้อมูลจะถูกเพิ่มโดย JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal จองทรัพยากร -->
+    <div id="bookingModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div
+            class="bg-gray-800 rounded-xl shadow-lg w-full max-w-md transform transition-all duration-300 border border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-700">
+                <h2 id="modalTitle" class="text-2xl font-bold text-white">จองทรัพยากร</h2>
+            </div>
+            <form id="bookingForm" class="p-6 space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">ทรัพยากร</label>
+                    <select id="resourceSelect"
+                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white">
+                        <option value="vehicle1">รถตู้ 1</option>
+                        <option value="vehicle2">รถตู้ 2</option>
+                        <option value="equipment1">อุปกรณ์ A</option>
+                        <option value="staff1">พนักงาน 1</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">วันที่เริ่มต้น</label>
+                    <input type="datetime-local" id="startDate"
+                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">วันที่สิ้นสุด</label>
+                    <input type="datetime-local" id="endDate"
+                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">หมายเหตุ</label>
+                    <textarea id="notes" rows="3"
+                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white"></textarea>
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeModal()"
+                        class="px-6 py-3 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 transition-all duration-200">
+                        ยกเลิก
+                    </button>
+                    <button type="submit"
+                        class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 border border-blue-500">
+                        บันทึก
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
