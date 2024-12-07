@@ -1,21 +1,3 @@
-// กำหนดข้อมูลผู้ใช้แบบตายตัว
-const USERS = [
-    {
-        email: 'manager@example.com',
-        password: 'manager123',
-        role: 'manager',
-        firstName: 'Manager',
-        lastName: 'User'
-    },
-    {
-        email: 'staff@example.com',
-        password: 'staff123',
-        role: 'staff',
-        firstName: 'Staff',
-        lastName: 'User'
-    }
-];
-
 // DOM Elements
 const loginForm = document.getElementById('loginForm');
 const submitButton = document.getElementById('submitButton');
@@ -121,3 +103,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// กำหนดข้อมูลผู้ใช้แบบตายตัว
+const USERS = [
+    {
+        email: 'manager@example.com',
+        password: 'manager123',
+        role: 'manager',
+        firstName: 'Manager',
+        lastName: 'User'
+    },
+    {
+        email: 'staff@example.com',
+        password: 'staff123',
+        role: 'staff',
+        firstName: 'Staff',
+        lastName: 'User'
+    }
+];
