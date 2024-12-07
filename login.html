@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบ - Travel Gear</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
+    <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-lg">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                เข้าสู่ระบบ Travel Gear
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                ระบบจัดการอุปกรณ์การท่องเที่ยว
+            </p>
+        </div>
+
+        <!-- Alert -->
+        <div id="alert" class="hidden rounded-md p-4 border">
+            <div class="flex justify-between">
+                <p id="alertMessage" class="text-sm"></p>
+                <button type="button" onclick="this.parentElement.parentElement.classList.add('hidden')" class="text-gray-400 hover:text-gray-500">
+                    ×
+                </button>
+            </div>
+        </div>
+
+        <form id="loginForm" class="mt-8 space-y-6">
+            <div class="rounded-md shadow-sm -space-y-px">
+                <div>
+                    <label for="email" class="sr-only">อีเมล</label>
+                    <input id="email" name="email" type="email" required 
+                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" 
+                        placeholder="อีเมล">
+                    <p id="emailError" class="hidden text-red-500 text-xs mt-1"></p>
+                </div>
+                <div>
+                    <label for="password" class="sr-only">รหัสผ่าน</label>
+                    <input id="password" name="password" type="password" required 
+                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" 
+                        placeholder="รหัสผ่าน">
+                    <p id="passwordError" class="hidden text-red-500 text-xs mt-1"></p>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <input id="rememberMe" name="rememberMe" type="checkbox" 
+                        class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="rememberMe" class="ml-2 block text-sm text-gray-900">
+                        จดจำการเข้าสู่ระบบ
+                    </label>
+                </div>
+
+                <div class="text-sm">
+                    <a href="#" id="forgotPassword" class="font-medium text-indigo-600 hover:text-indigo-500">
+                        ลืมรหัสผ่าน?
+                    </a>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" id="submitButton"
+                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    เข้าสู่ระบบ
+                </button>
+            </div>
+        </form>
+
+        <div class="text-sm text-center">
+            <a href="register.html" class="font-medium text-indigo-600 hover:text-indigo-500">
+                ยังไม่มีบัญชี? ลงทะเบียน
+            </a>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div id="resetModal" class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg max-w-md w-full">
+            <h3 class="text-lg font-medium mb-4">รีเซ็ตรหัสผ่าน</h3>
+            <form id="resetForm">
+                <input type="email" id="resetEmail" name="resetEmail" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md mb-4" 
+                    placeholder="กรอกอีเมลของคุณ" required>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" id="cancelReset" 
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" 
+                        class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+                        ส่งลิงก์รีเซ็ตรหัสผ่าน
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>
