@@ -18,18 +18,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-// User Schema
-const userSchema = new mongoose.Schema({
-    firstName: String,
-    lastName: String,
-    email: String,
-    password: String,
-    phone: String,
-    role: String
-});
-
-const User = mongoose.model('User', userSchema);
-
+// Equipment Schema
 const equipmentSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -76,24 +65,6 @@ const equipmentSchema = new mongoose.Schema({
 });
 
 const Equipment = mongoose.model('Equipment', equipmentSchema, 'gear');
-
-// Register Route
-app.post('/api/register', async (req, res) => {
-    try {
-        console.log('Received:', req.body);
-        const user = new User(req.body);
-        console.log('Created user object:', user);
-        const savedUser = await user.save();
-        console.log('Saved user:', savedUser);
-        res.status(201).json({ message: 'ลงทะเบียนสำเร็จ' });
-    } catch (error) {
-        console.error('Registration error:', error);
-        res.status(500).json({ 
-            message: 'เกิดข้อผิดพลาดในการลงทะเบียน',
-            error: error.message 
-        });
-    }
-});
 
 // GET all equipment
 app.get('/api/equipment', async (req, res) => {
@@ -170,7 +141,7 @@ app.post('/api/equipment', async (req, res) => {
     }
 });
 
-// UPDATE equipment
+// PUT update equipment
 app.put('/api/equipment/:id', async (req, res) => {
     try {
         if (!isValidObjectId(req.params.id)) {
