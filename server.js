@@ -219,3 +219,188 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
+// หน้า booking
+// เพิ่ม Schema สำหรับการจอง
+const bookingSchema = new mongoose.Schema({
+    resourceId: {
+        type: String,
+        required: [true, 'กรุณาระบุทรัพยากร']
+    },
+    resourceName: {
+        type: String,
+        required: [true, 'กรุณาระบุชื่อทรัพยากร']
+    },
+    type: {
+        type: String,
+        required: [true, 'กรุณาระบุประเภททรัพยากร'],
+        enum: ['vehicle', 'equipment', 'staff']
+    },
+    start: {
+        type: Date,
+        required: [true, 'กรุณาระบุวันที่เริ่มต้น']
+    },
+    end: {
+        type: Date,
+        required: [true, 'กรุณาระบุวันที่สิ้นสุด']
+    },
+    status: {
+        type: String,
+        required: [true, 'กรุณาระบุสถานะ'],
+        enum: ['scheduled', 'in-use', 'completed', 'cancelled'],
+        default: 'scheduled'
+    },
+    notes: String,
+    userId: {
+        type: String,
+        required: [true, 'กรุณาระบุผู้จอง']
+    }
+}, {
+    timestamps: true
+});
+
+const Booking = mongoose.model('Booking', bookingSchema);
+
+// API endpoints สำหรับการจอง
+// GET - ดึงข้อมูลการจองทั้งหมด
+app.get('/api/bookings', async (req, res) => {
+    try {
+        const bookings = await Booking.find();
+        res.json(bookings);
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// POST - สร้างการจองใหม่
+app.post('/api/bookings', async (req, res) => {
+    try {
+        // ตรวจสอบการจองที่ซ้ำซ้อน
+        const overlap = await Booking.findOne({
+            resourceId: req.body.resourceId,
+            status: { $in: ['scheduled', 'in-use'] },
+            $or: [
+                {
+                    start: { $lte: new Date(req.body.end) },
+                    end: { $gte: new Date(req.body.start) }
+                }
+            ]
+        });
+
+        if (overlap) {
+            return res.status(400).json({
+                success: false,
+                message: 'ทรัพยากรถูกจองในช่วงเวลานี้แล้ว'
+            });
+        }
+
+        const booking = new Booking(req.body);
+        const newBooking = await booking.save();
+        
+        res.status(201).json({
+            success: true,
+            message: 'บันทึกการจองสำเร็จ',
+            data: newBooking
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// PUT - อัพเดทการจอง
+app.put('/api/bookings/:id', async (req, res) => {
+    try {
+        if (!isValidObjectId(req.params.id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'รูปแบบ ID ไม่ถูกต้อง'
+            });
+        }
+
+        // ตรวจสอบการจองที่ซ้ำซ้อน (ยกเว้นการจองปัจจุบัน)
+        const overlap = await Booking.findOne({
+            _id: { $ne: req.params.id },
+            resourceId: req.body.resourceId,
+            status: { $in: ['scheduled', 'in-use'] },
+            $or: [
+                {
+                    start: { $lte: new Date(req.body.end) },
+                    end: { $gte: new Date(req.body.start) }
+                }
+            ]
+        });
+
+        if (overlap) {
+            return res.status(400).json({
+                success: false,
+                message: 'ทรัพยากรถูกจองในช่วงเวลานี้แล้ว'
+            });
+        }
+
+        const booking = await Booking.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: 'ไม่พบข้อมูลการจอง'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'อัพเดทการจองสำเร็จ',
+            data: booking
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+
+// DELETE - ยกเลิกการจอง
+app.delete('/api/bookings/:id', async (req, res) => {
+    try {
+        if (!isValidObjectId(req.params.id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'รูปแบบ ID ไม่ถูกต้อง'
+            });
+        }
+
+        const booking = await Booking.findByIdAndUpdate(
+            req.params.id,
+            { status: 'cancelled' },
+            { new: true }
+        );
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: 'ไม่พบข้อมูลการจอง'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'ยกเลิกการจองสำเร็จ'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});

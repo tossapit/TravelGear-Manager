@@ -1,63 +1,72 @@
-// ข้อมูลจำลอง
-let bookings = [
-  {
-    id: 1,
-    resourceId: "vehicle1",
-    resourceName: "รถตู้ 1",
-    type: "vehicle",
-    start: "2024-12-08T09:00:00",
-    end: "2024-12-09T17:00:00",
-    status: "scheduled",
-    notes: "ทริปเดินทางภูเก็ต",
-  },
-  {
-    id: 2,
-    resourceId: "equipment1",
-    resourceName: "อุปกรณ์ A",
-    type: "equipment",
-    start: "2024-12-10T10:00:00",
-    end: "2024-12-11T16:00:00",
-    status: "in-use",
-    notes: "ใช้สำหรับกิจกรรมดำน้ำ",
-  },
-];
-
+const API_URL = 'http://localhost:5000/api';
+let bookings = [];
 let editingId = null;
+let calendar;
 
-// ฟังก์ชันแสดงตารางการจอง
+// ฟังก์ชันดึงข้อมูลการจองทั้งหมด
+async function fetchBookings() {
+  try {
+      const response = await fetch(`${API_URL}/bookings`);
+      if (!response.ok) {
+          throw new Error('ไม่สามารถดึงข้อมูลการจองได้');
+      }
+      bookings = await response.json();
+      renderBookingTable();
+      updateResourceStatus();
+  } catch (error) {
+      console.error('Error fetching bookings:', error);
+      showAlert('ไม่สามารถดึงข้อมูลการจองได้', 'error');
+  }
+}
+
+// ฟังก์ชันแสดงตารางการจอง 
 function renderBookingTable(data = bookings) {
-  const tableBody = document.getElementById("bookingTable");
-  tableBody.innerHTML = data
-    .map(
-      (booking) => `
-        <tr>
-            <td class="px-6 py-4">${booking.resourceName}</td>
-            <td class="px-6 py-4">${getResourceTypeText(booking.type)}</td>
-            <td class="px-6 py-4">${formatDateTime(booking.start)}</td>
-            <td class="px-6 py-4">${formatDateTime(booking.end)}</td>
+    const tableBody = document.getElementById("bookingTable");
+    if (!tableBody) return;
+
+    tableBody.innerHTML = data.map((booking) => `
+        <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition-colors duration-150">
             <td class="px-6 py-4">
-                <span class="px-2 py-1 rounded text-sm ${getStatusColor(
-                  booking.status
-                )}">
-                    ${getStatusText(booking.status)}
-                </span>
+                <div class="flex flex-col">
+                    <span class="font-medium text-white">${booking.resourceName}</span>
+                    <span class="text-sm text-gray-400">${getResourceTypeText(booking.type)}</span>
+                </div>
             </td>
             <td class="px-6 py-4">
-                <button onclick="editBooking(${
-                  booking.id
-                })" class="text-blue-600 hover:text-blue-800 mr-2">
-                    แก้ไข
-                </button>
-                <button onclick="deleteBooking(${
-                  booking.id
-                })" class="text-red-600 hover:text-red-800">
-                    ยกเลิก
-                </button>
+                <div class="flex flex-col">
+                    <span class="px-2 py-1 rounded text-sm inline-flex items-center w-fit ${getStatusColor(booking.status)}">
+                        ${getStatusText(booking.status)}
+                    </span>
+                    <span class="text-sm text-gray-400 mt-1">${formatDateTime(booking.start)} - ${formatDateTime(booking.end)}</span>
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="flex space-x-3">
+                    <button onclick="editBooking('${booking._id}')"
+                            class="text-blue-400 hover:text-blue-300 transition-colors duration-200">
+                        แก้ไข
+                    </button>
+                    <button onclick="deleteBooking('${booking._id}')"
+                            class="text-red-400 hover:text-red-300 transition-colors duration-200">
+                        ยกเลิก
+                    </button>
+                </div>
             </td>
         </tr>
-    `
-    )
-    .join("");
+    `).join("");
+}
+
+// ฟังก์ชันอัพเดทสถานะทรัพยากร
+function updateResourceStatus() {
+    const counts = {
+        available: bookings.filter(b => b.status === 'available').length,
+        scheduled: bookings.filter(b => b.status === 'scheduled').length,
+        inUse: bookings.filter(b => b.status === 'in-use').length
+    };
+
+    document.getElementById('availableCount').textContent = `${counts.available} รายการ`;
+    document.getElementById('scheduledCount').textContent = `${counts.scheduled} รายการ`;
+    document.getElementById('inUseCount').textContent = `${counts.inUse} รายการ`;
 }
 
 // ฟังก์ชันกรองข้อมูล
@@ -67,268 +76,438 @@ function filterBookings() {
   const statusFilter = document.getElementById("statusFilter").value;
 
   const filteredData = bookings.filter((booking) => {
-    const matchesSearch = booking.resourceName
-      .toLowerCase()
-      .includes(searchTerm);
-    const matchesType = !typeFilter || booking.type === typeFilter;
-    const matchesStatus = !statusFilter || booking.status === statusFilter;
-    return matchesSearch && matchesType && matchesStatus;
+      const matchesSearch = booking.resourceName.toLowerCase().includes(searchTerm);
+      const matchesType = !typeFilter || booking.type === typeFilter;
+      const matchesStatus = !statusFilter || booking.status === statusFilter;
+      return matchesSearch && matchesType && matchesStatus;
   });
 
   renderBookingTable(filteredData);
-  updateCalendar(filteredData);
 }
 
 // ฟังก์ชันช่วยจัดการการแสดงผล
 function getResourceTypeText(type) {
-  const types = {
-    vehicle: "ยานพาหนะ",
-    equipment: "อุปกรณ์",
-    staff: "พนักงาน",
-  };
-  return types[type] || type;
+    const types = {
+        vehicle: "ยานพาหนะ",
+        equipment: "อุปกรณ์",
+        staff: "พนักงาน"
+    };
+    return types[type] || type;
 }
 
 function getStatusText(status) {
-  const statuses = {
-    available: "พร้อมใช้งาน",
-    "in-use": "กำลังใช้งาน",
-    scheduled: "มีการจองแล้ว",
-  };
-  return statuses[status] || status;
+    const statuses = {
+        available: "พร้อมใช้งาน",
+        scheduled: "มีการจองแล้ว",
+        "in-use": "กำลังใช้งาน",
+        completed: "เสร็จสิ้น",
+        cancelled: "ยกเลิก"
+    };
+    return statuses[status] || status;
 }
 
 function getStatusColor(status) {
-  const colors = {
-    available: "bg-green-100 text-green-800",
-    "in-use": "bg-red-100 text-red-800",
-    scheduled: "bg-yellow-100 text-yellow-800",
-  };
-  return colors[status] || "";
+    const colors = {
+        available: "bg-green-900/50 text-green-300 border border-green-500/30",
+        scheduled: "bg-yellow-900/50 text-yellow-300 border border-yellow-500/30",
+        "in-use": "bg-blue-900/50 text-blue-300 border border-blue-500/30",
+        completed: "bg-emerald-900/50 text-emerald-300 border border-emerald-500/30",
+        cancelled: "bg-red-900/50 text-red-300 border border-red-500/30"
+    };
+    return colors[status] || "bg-gray-900/50 text-gray-300 border border-gray-500/30";
 }
 
 function formatDateTime(dateString) {
-  return new Date(dateString).toLocaleString("th-TH", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+    return new Date(dateString).toLocaleString("th-TH", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
 }
 
 // ฟังก์ชันจัดการ Modal
 function openModal() {
-  document.getElementById("bookingModal").classList.remove("hidden");
-  document.getElementById("modalTitle").textContent = editingId
-    ? "แก้ไขการจอง"
-    : "จองทรัพยากร";
+    document.getElementById("bookingModal").classList.remove("hidden");
+    document.getElementById("modalTitle").textContent = editingId
+        ? "แก้ไขการจอง"
+        : "จองทรัพยากร";
 }
 
 function closeModal() {
-  document.getElementById("bookingModal").classList.add("hidden");
-  document.getElementById("bookingForm").reset();
-  editingId = null;
+    document.getElementById("bookingModal").classList.add("hidden");
+    document.getElementById("bookingForm").reset();
+    editingId = null;
 }
 
 // ฟังก์ชัน CRUD
-function handleSubmit(event) {
+async function handleSubmit(event) {
   event.preventDefault();
-
-  const formData = {
-    resourceId: document.getElementById("resourceSelect").value,
-    resourceName:
-      document.getElementById("resourceSelect").options[
-        document.getElementById("resourceSelect").selectedIndex
-      ].text,
-    type: document.getElementById("resourceSelect").value.includes("vehicle")
-      ? "vehicle"
-      : document.getElementById("resourceSelect").value.includes("equipment")
-      ? "equipment"
-      : "staff",
-    start: document.getElementById("startDate").value,
-    end: document.getElementById("endDate").value,
-    status: "scheduled",
-    notes: document.getElementById("notes").value,
-  };
-
-  if (editingId) {
-    // อัปเดตการจองที่มีอยู่
-    bookings = bookings.map((booking) =>
-      booking.id === editingId ? { ...booking, ...formData } : booking
-    );
-  } else {
-    // เพิ่มการจองใหม่
-    formData.id = bookings.length + 1;
-    bookings.push(formData);
+  
+  if (!validateBookingForm()) {
+      return;
   }
 
-  renderBookingTable();
-  updateCalendar();
-  closeModal();
-}
+  try {
+      const formData = {
+          resourceId: document.getElementById("resourceSelect").value,
+          resourceName: document.getElementById("resourceSelect").options[
+              document.getElementById("resourceSelect").selectedIndex
+          ].text,
+          type: document.getElementById("resourceSelect").value.includes("vehicle")
+              ? "vehicle"
+              : document.getElementById("resourceSelect").value.includes("equipment")
+              ? "equipment"
+              : "staff",
+          start: document.getElementById("startDate").value,
+          end: document.getElementById("endDate").value,
+          status: "scheduled",
+          notes: document.getElementById("notes").value,
+          userId: localStorage.getItem('userId') || 'anonymous'
+      };
 
-function editBooking(id) {
-  const booking = bookings.find((booking) => booking.id === id);
-  if (booking) {
-    editingId = id;
-    document.getElementById("resourceSelect").value = booking.resourceId;
-    document.getElementById("startDate").value = booking.start.slice(0, 16);
-    document.getElementById("endDate").value = booking.end.slice(0, 16);
-    document.getElementById("notes").value = booking.notes;
-    openModal();
+      const url = editingId 
+          ? `${API_URL}/bookings/${editingId}`
+          : `${API_URL}/bookings`;
+          
+      const response = await fetch(url, {
+          method: editingId ? 'PUT' : 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+          throw new Error(result.message || 'ไม่สามารถบันทึกการจองได้');
+      }
+
+      await fetchBookings(); // ดึงข้อมูลใหม่หลังบันทึก
+      closeModal();
+      showAlert(result.message || (editingId ? 'อัปเดตการจองสำเร็จ' : 'บันทึกการจองสำเร็จ'), 'success');
+      
+  } catch (error) {
+      showAlert(error.message, 'error');
   }
 }
 
-function deleteBooking(id) {
+async function editBooking(id) {
+  try {
+      const response = await fetch(`${API_URL}/bookings/${id}`);
+      
+      if (!response.ok) {
+          throw new Error('ไม่พบข้อมูลการจอง');
+      }
+
+      const booking = await response.json();
+      editingId = id;
+      document.getElementById("resourceSelect").value = booking.resourceId;
+      document.getElementById("startDate").value = new Date(booking.start).toISOString().slice(0, 16);
+      document.getElementById("endDate").value = new Date(booking.end).toISOString().slice(0, 16);
+      document.getElementById("notes").value = booking.notes || '';
+      openModal();
+  } catch (error) {
+      showAlert(error.message, 'error');
+  }
+}
+
+async function deleteBooking(id) {
   if (confirm("คุณแน่ใจหรือไม่ที่จะยกเลิกการจองนี้?")) {
-    bookings = bookings.filter((booking) => booking.id !== id);
-    renderBookingTable();
-    updateCalendar();
+      try {
+          const response = await fetch(`${API_URL}/bookings/${id}`, {
+              method: 'DELETE'
+          });
+          
+          if (!response.ok) {
+              throw new Error('ไม่สามารถยกเลิกการจองได้');
+          }
+
+          await fetchBookings(); // ดึงข้อมูลใหม่หลังลบ
+          showAlert('ยกเลิกการจองสำเร็จ', 'success');
+      } catch (error) {
+          showAlert(error.message, 'error');
+      }
   }
 }
 
 // ฟังก์ชันอัปเดตปฏิทิน
 function updateCalendar(data = bookings) {
-  if (calendar) {
-    calendar.removeAllEvents();
-    calendar.addEventSource(data);
+    if (typeof FullCalendar === 'undefined') {
+        console.warn('FullCalendar is not loaded');
+        return;
+    }
+
+    if (calendar) {
+        calendar.removeAllEvents();
+        calendar.addEventSource(
+            data.map((booking) => ({
+                id: booking._id,
+                title: `${booking.resourceName} (${getStatusText(booking.status)})`,
+                start: booking.start,
+                end: booking.end,
+                backgroundColor: getEventColor(booking.status),
+                borderColor: getBorderColor(booking.status),
+                textColor: 'white'
+            }))
+        );
+    }
+}
+
+// ฟังก์ชันแสดง Alert
+function showAlert(message, type) {
+    const alertBox = document.createElement('div');
+    alertBox.className = `fixed top-4 right-4 p-4 rounded-lg ${
+        type === 'success' ? 'bg-green-900 text-green-300 border border-green-500' 
+        : 'bg-red-900 text-red-300 border border-red-500'
+    } z-50`;
+    alertBox.textContent = message;
+    document.body.appendChild(alertBox);
+    
+    setTimeout(() => {
+        alertBox.remove();
+    }, 3000);
+}
+
+// ฟังก์ชันตรวจสอบการซ้อนทับของการจอง
+function checkBookingOverlap(startDate, endDate, resourceId, excludeId = null) {
+    return bookings.some((booking) => {
+        if (booking._id == excludeId || booking.resourceId !== resourceId) {
+            return false;
+        }
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const bookingStart = new Date(booking.start);
+        const bookingEnd = new Date(booking.end);
+
+        return start < bookingEnd && end > bookingStart;
+    });
+}
+
+// ฟังก์ชันตรวจสอบความถูกต้องของฟอร์ม
+function validateBookingForm() {
+    const resourceId = document.getElementById("resourceSelect").value;
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
+
+    if (!resourceId || !startDate || !endDate) {
+        showAlert("กรุณากรอกข้อมูลให้ครบถ้วน", "error");
+        return false;
+    }
+
+    if (new Date(startDate) >= new Date(endDate)) {
+        showAlert("วันที่สิ้นสุดต้องมาหลังวันที่เริ่มต้น", "error");
+        return false;
+    }
+
+    const hasOverlap = checkBookingOverlap(startDate, endDate, resourceId, editingId);
+    if (hasOverlap) {
+        showAlert("มีการจองที่ซ้อนทับกับช่วงเวลานี้", "error");
+        return false;
+    }
+
+    return true;
+}
+
+// ฟังก์ชันสีสำหรับปฏิทิน
+function getEventColor(status) {
+    const colors = {
+        available: "#059669",  // Green
+        scheduled: "#9333EA",  // Purple
+        "in-use": "#2563EB",  // Blue
+        completed: "#16A34A",  // Emerald
+        cancelled: "#DC2626"   // Red
+    };
+    return colors[status] || "#9333EA";
+}
+
+function getBorderColor(status) {
+    const colors = {
+        available: "#10B981",
+        scheduled: "#A855F7",
+        "in-use": "#3B82F6",
+        completed: "#22C55E",
+        cancelled: "#EF4444"
+    };
+    return colors[status] || "#A855F7";
+}
+
+// ฟังก์ชันรีเซ็ตฟิลเตอร์
+function resetFilters() {
+    document.getElementById("searchInput").value = "";
+    document.getElementById("typeFilter").value = "";
+    document.getElementById("statusFilter").value = "";
+    filterBookings();
+    showAlert("รีเซ็ตตัวกรองแล้ว", "success");
+}
+
+async function handleEventDrop(info) {
+  try {
+      const response = await fetch(`${API_URL}/bookings/${info.event.id}`, {
+          method: 'PUT',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+              start: info.event.startStr,
+              end: info.event.endStr
+          })
+      });
+
+      if (!response.ok) {
+          info.revert();
+          const error = await response.json();
+          throw new Error(error.message || 'ไม่สามารถอัพเดทการจองได้');
+      }
+
+      await fetchBookings();
+      showAlert('อัพเดทการจองสำเร็จ', 'success');
+  } catch (error) {
+      info.revert();
+      showAlert(error.message, 'error');
   }
 }
 
 // การตั้งค่าเริ่มต้น
-let calendar;
-document.addEventListener("DOMContentLoaded", function () {
-  renderBookingTable();
+document.addEventListener("DOMContentLoaded", async function () {
+  await fetchBookings();
 
   // ตั้งค่าปฏิทิน
   const calendarEl = document.getElementById("calendar");
-  if (calendarEl) {
-    calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: "dayGridMonth",
-      locale: "th",
-      headerToolbar: {
-        left: "prev,next today",
-        center: "title",
-        right: "dayGridMonth,timeGridWeek,timeGridDay",
-      },
-      buttonText: {
-        today: "วันนี้",
-        month: "เดือน",
-        week: "สัปดาห์",
-        day: "วัน",
-      },
-      events: bookings.map((booking) => ({
-        id: booking.id.toString(),
-        title: booking.resourceName,
-        start: booking.start,
-        end: booking.end,
-        backgroundColor:
-          booking.status === "scheduled"
-            ? "#FCD34D"
-            : booking.status === "in-use"
-            ? "#F87171"
-            : "#34D399",
-      })),
-      editable: true,
-      selectable: true,
-      select: function (info) {
-        // เมื่อผู้ใช้เลือกวันในปฏิทิน
-        document.getElementById("startDate").value = info.startStr;
-        document.getElementById("endDate").value = info.endStr;
-        openModal();
-      },
-      eventClick: function (info) {
-        // เมื่อผู้ใช้คลิกที่การจองในปฏิทิน
-        const bookingId = parseInt(info.event.id);
-        editBooking(bookingId);
-      },
-      eventDrop: function (info) {
-        // เมื่อผู้ใช้ลากและวางการจอง
-        const bookingId = parseInt(info.event.id);
-        const booking = bookings.find((b) => b.id === bookingId);
-        if (booking) {
-          booking.start = info.event.startStr;
-          booking.end = info.event.endStr;
-          renderBookingTable();
-        }
-      },
-    });
-    calendar.render();
+  if (calendarEl && typeof FullCalendar !== 'undefined') {
+      calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: "dayGridMonth",
+          locale: "th",
+          headerToolbar: {
+              left: "prev,next today",
+              center: "title",
+              right: "dayGridMonth,timeGridWeek,timeGridDay"
+          },
+          buttonText: {
+              today: "วันนี้",
+              month: "เดือน",
+              week: "สัปดาห์",
+              day: "วัน"
+          },
+          events: bookings.map((booking) => ({
+              id: booking._id,
+              title: `${booking.resourceName} (${getStatusText(booking.status)})`,
+              start: booking.start,
+              end: booking.end,
+              backgroundColor: getEventColor(booking.status),
+              borderColor: getBorderColor(booking.status),
+              textColor: 'white'
+          })),
+          editable: true,
+          selectable: true,
+          selectMirror: true,
+          dayMaxEvents: true,
+          eventTimeFormat: {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+          },
+          select: function (info) {
+              document.getElementById("startDate").value = info.startStr;
+              document.getElementById("endDate").value = info.endStr;
+              openModal();
+          },
+          eventClick: function (info) {
+              editBooking(info.event.id);
+          },
+          eventDrop: async function (info) {
+              try {
+                  const booking = bookings.find(b => b._id == info.event.id);
+                  if (!booking) {
+                      info.revert();
+                      throw new Error('ไม่พบข้อมูลการจอง');
+                  }
+
+                  const updatedBooking = {
+                      ...booking,
+                      start: info.event.startStr,
+                      end: info.event.endStr
+                  };
+
+                  // ตรวจสอบการซ้อนทับ
+                  const hasOverlap = checkBookingOverlap(
+                      updatedBooking.start,
+                      updatedBooking.end,
+                      updatedBooking.resourceId,
+                      updatedBooking._id
+                  );
+
+                  if (hasOverlap) {
+                      info.revert();
+                      showAlert("มีการจองที่ซ้อนทับกับช่วงเวลานี้", "error");
+                      return;
+                  }
+
+                  // อัพเดทข้อมูล
+                  bookings = bookings.map(b => 
+                      b._id == updatedBooking._id ? updatedBooking : b
+                  );
+
+                  renderBookingTable();
+                  updateCalendar();
+                  updateResourceStatus();
+                  showAlert('อัพเดทการจองสำเร็จ', 'success');
+              } catch (error) {
+                  info.revert();
+                  showAlert(error.message, 'error');
+              }
+          },
+          // ตั้งค่าสีและสไตล์
+          eventDidMount: function(info) {
+              info.el.style.borderWidth = '2px';
+              info.el.style.borderRadius = '6px';
+              
+              // เพิ่ม tooltip
+              const tooltip = document.createElement('div');
+              tooltip.className = 'calendar-tooltip bg-gray-900 text-white p-2 rounded shadow-lg border border-gray-700 text-sm';
+              tooltip.innerHTML = `
+                  <p class="font-medium">${info.event.title}</p>
+                  <p class="text-gray-300">เริ่ม: ${formatDateTime(info.event.start)}</p>
+                  <p class="text-gray-300">สิ้นสุด: ${formatDateTime(info.event.end)}</p>
+              `;
+              
+              info.el.addEventListener('mouseover', function() {
+                  document.body.appendChild(tooltip);
+                  const rect = info.el.getBoundingClientRect();
+                  tooltip.style.position = 'fixed';
+                  tooltip.style.top = rect.bottom + 5 + 'px';
+                  tooltip.style.left = rect.left + 'px';
+                  tooltip.style.zIndex = 1000;
+              });
+              
+              info.el.addEventListener('mouseout', function() {
+                  if (document.body.contains(tooltip)) {
+                      document.body.removeChild(tooltip);
+                  }
+              });
+          }
+      });
+      calendar.render();
   }
 
   // จัดการการส่งฟอร์ม
   const bookingForm = document.getElementById("bookingForm");
   if (bookingForm) {
-    bookingForm.addEventListener("submit", handleSubmit);
+      bookingForm.addEventListener("submit", handleSubmit);
   }
 
   // จัดการตัวกรอง
   const filters = ["searchInput", "typeFilter", "statusFilter"];
   filters.forEach((filterId) => {
-    const element = document.getElementById(filterId);
-    if (element) {
-      element.addEventListener("change", filterBookings);
-      if (filterId === "searchInput") {
-        element.addEventListener("keyup", filterBookings);
+      const element = document.getElementById(filterId);
+      if (element) {
+          element.addEventListener("change", filterBookings);
+          if (filterId === "searchInput") {
+              element.addEventListener("keyup", filterBookings);
+          }
       }
-    }
   });
 });
-
-// ฟังก์ชันตรวจสอบการซ้อนทับของการจอง
-function checkBookingOverlap(startDate, endDate, resourceId, excludeId = null) {
-  return bookings.some((booking) => {
-    if (booking.id === excludeId || booking.resourceId !== resourceId) {
-      return false;
-    }
-
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const bookingStart = new Date(booking.start);
-    const bookingEnd = new Date(booking.end);
-
-    return start < bookingEnd && end > bookingStart;
-  });
-}
-
-// ฟังก์ชันตรวจสอบความถูกต้องของฟอร์ม
-function validateBookingForm() {
-  const resourceId = document.getElementById("resourceSelect").value;
-  const startDate = document.getElementById("startDate").value;
-  const endDate = document.getElementById("endDate").value;
-
-  if (!resourceId || !startDate || !endDate) {
-    alert("กรุณากรอกข้อมูลให้ครบถ้วน");
-    return false;
-  }
-
-  if (new Date(startDate) >= new Date(endDate)) {
-    alert("วันที่สิ้นสุดต้องมาหลังวันที่เริ่มต้น");
-    return false;
-  }
-
-  if (checkBookingOverlap(startDate, endDate, resourceId, editingId)) {
-    alert("มีการจองที่ซ้อนทับกับช่วงเวลานี้");
-    return false;
-  }
-
-  return true;
-}
-
-// เพิ่มการตรวจสอบฟอร์มก่อนการบันทึก
-const originalHandleSubmit = handleSubmit;
-handleSubmit = function (event) {
-  event.preventDefault();
-  if (validateBookingForm()) {
-    originalHandleSubmit(event);
-  }
-};
-
-// ฟังก์ชันรีเซ็ตฟิลเตอร์
-function resetFilters() {
-  document.getElementById("searchInput").value = "";
-  document.getElementById("typeFilter").value = "";
-  document.getElementById("statusFilter").value = "";
-  filterBookings();
-}
