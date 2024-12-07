@@ -106,18 +106,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 showAlert('เข้าสู่ระบบสำเร็จ', 'success');
                 
-                // Redirect based on role
+                // Redirect to Inventory Dashboard
                 setTimeout(() => {
-                    switch(result.user.role) {
-                        case 'manager':
-                            window.location.href = 'manager/dashboard.html';
-                            break;
-                        case 'staff':
-                            window.location.href = 'staff/dashboard.html';
-                            break;
-                        default:
-                            window.location.href = 'dashboard.html';
-                    }
+                    window.location.href = 'Inventory_Dashboard/Inventory_Dashboard.html';
                 }, 1000);
             } else {
                 showAlert('อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error');
