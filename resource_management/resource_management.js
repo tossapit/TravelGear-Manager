@@ -71,7 +71,7 @@ function renderTable(data = inventory) {
     }
     
     tableBody.innerHTML = data.map(item => `
-        <tr class="border-t hover:bg-gray-50">
+        <tr class="border-t hover:bg-[#374151]">
             <td class="px-6 py-4">${escapeHtml(item.name || '')}</td>
             <td class="px-6 py-4">${escapeHtml(item.type || '')}</td>
             <td class="px-6 py-4">${escapeHtml(item.totalQuantity || 0)}</td>
