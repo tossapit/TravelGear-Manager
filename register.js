@@ -139,3 +139,16 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
     });
 });
+
+// Get form element
+const form = document.getElementById('registerForm');
+
+// Add submit event listener
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Add your form validation logic here if needed
+    
+    // Redirect to login page
+    window.location.href = 'login.html';
+});
