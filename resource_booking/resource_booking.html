@@ -5,53 +5,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบจองทรัพยากร</title>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- FullCalendar Dependencies -->
     <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.11.3/main.min.css' rel='stylesheet' />
     <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.11.3/main.min.js'></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.11.3/locales/th.min.js'></script>
-    
+
     <!-- Custom Script -->
     <script src="resource_booking.js" defer></script>
-    
+
     <style>
         .fc {
             background-color: #1f2937;
             border-color: #374151;
         }
-        .fc-theme-standard td, .fc-theme-standard th {
+
+        .fc-theme-standard td,
+        .fc-theme-standard th {
             border-color: #374151;
         }
+
         .fc .fc-daygrid-day-number,
         .fc .fc-col-header-cell-cushion {
             color: #fff;
             font-size: 1.1rem;
             padding: 8px;
         }
+
         .fc-daygrid-day.fc-day-today {
             background-color: rgba(59, 130, 246, 0.2) !important;
         }
+
         .fc-button-primary {
             background-color: #3b82f6 !important;
             border-color: #2563eb !important;
             padding: 12px 20px !important;
             font-size: 1.1rem !important;
         }
+
         .fc-button-primary:hover {
             background-color: #2563eb !important;
         }
+
         .fc .fc-toolbar-title {
             font-size: 1.5rem !important;
             font-weight: 600;
         }
+
         .fc-event {
             font-size: 1rem !important;
             padding: 4px 8px !important;
         }
-        /* เพิ่ม style สำหรับ tooltip */
+
         .calendar-tooltip {
             display: none;
             position: absolute;
@@ -65,122 +73,148 @@
     </style>
 </head>
 
-<body class="bg-gray-900 text-gray-100">    
-    <div class="container mx-auto px-6 py-8">
-        
-        <!-- หัวข้อหลัก -->
-        <div class="flex justify-between items-center mb-10 bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-700">
-            <div>
-                <h1 class="text-4xl font-bold text-white mb-3">ระบบจองทรัพยากร</h1>
-                <p class="text-xl text-gray-400">จัดการการจองทรัพยากรของคุณ</p>
+<body class="bg-gray-900 text-gray-100">
+    <div class="flex h-screen bg-gray-900">
+        <!-- Sidebar -->
+        <div class="w-64 h-screen bg-[#1a1c23] text-white fixed">
+            <div class="p-4 bg-white/10 border-b border-white/10">
+                <a href="resource_management.html" class="flex items-center gap-2 text-lg">
+                    <span class="bg-white text-gray-900 px-2 rounded">TG</span>
+                    TravelGear
+                </a>
             </div>
-            <button onclick="openModal()"
-                class="bg-blue-600 text-white px-8 py-4 text-lg rounded-lg hover:bg-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center space-x-3 border border-blue-500">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                <span>จองใหม่</span>
-            </button>
+
+            <nav class="mt-4">
+                <a href="#"
+                    class="flex items-center px-4 py-3 text-gray-300 hover:bg-white/10 hover:text-white transition-colors duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span class="ml-3">Dashboard</span>
+                </a>
+
+                <a href="#" class="flex items-center px-4 py-3 bg-white/10 text-white">
+                    <img src="/img/add.png" alt="Add icon" class="w-5 h-5">
+                    <span class="ml-3">Add Gear</span>
+                </a>
+            </nav>
         </div>
 
-        <!-- ส่วนปฏิทินและการจอง -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- ปฏิทิน -->
-            <!-- <div class="lg:col-span-2">
-                <div class="bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-700">
-                    <div id="calendar" class="min-h-[685px]"></div>
-                </div>
-            </div> -->
-
-            <div class="lg:col-span-2">
-                <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700">
-                    <h2 class="text-2xl font-bold text-white mb-6">การจองทั้งหมด</h2>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full w-full">
-                            <thead class="bg-gray-700">
-                                <tr>
-                                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">
-                                        ชื่อ
-                                    </th>
-                                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">
-                                        สถานะ
-                                    </th>
-                                    <th class="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">
-                                        จัดการ
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="bookingTable" class="bg-gray-800 divide-y divide-gray-700">
-                                <!-- JavaScript จะเพิ่มข้อมูลที่นี่ -->
-                            </tbody>
-                        </table>
+        <!-- Main Content -->
+        <div class="flex-1 ml-64">
+            <div class="container mx-auto px-6 py-8">
+                <!-- หัวข้อหลัก -->
+                <div
+                    class="flex justify-between items-center mb-10 bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-700">
+                    <div>
+                        <h1 class="text-4xl font-bold text-white mb-3">ระบบจองทรัพยากร</h1>
+                        <p class="text-xl text-gray-400">จัดการการจองทรัพยากรของคุณ</p>
                     </div>
+                    <button onclick="openModal()"
+                        class="bg-blue-600 text-white px-8 py-4 text-lg rounded-lg hover:bg-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center space-x-3 border border-blue-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
+                            </path>
+                        </svg>
+                        <span>จองใหม่</span>
+                    </button>
                 </div>
-            </div>
-            
 
-            <!-- ส่วนขวา -->
-            <div class="space-y-8">
-                <!-- ค้นหาและกรอง -->
-                <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700">
-                    <h2 class="text-2xl font-bold text-white mb-6">ค้นหาการจอง</h2>
-                    <div class="space-y-5">
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                </svg>
+                <!-- ส่วนปฏิทินและการจอง -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700">
+                            <h2 class="text-2xl font-bold text-white mb-6">การจองทั้งหมด</h2>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full">
+                                    <thead class="bg-gray-700">
+                                        <tr>
+                                            <th
+                                                class="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">
+                                                ชื่อ</th>
+                                            <th
+                                                class="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">
+                                                สถานะ</th>
+                                            <th
+                                                class="px-6 py-4 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">
+                                                จัดการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bookingTable" class="bg-gray-800 divide-y divide-gray-700">
+                                        <!-- JavaScript จะเพิ่มข้อมูลที่นี่ -->
+                                    </tbody>
+                                </table>
                             </div>
-                            <input type="text" id="searchInput" 
-                                placeholder="ค้นหาทรัพยากร..."
-                                class="w-full pl-12 pr-4 py-4 text-lg bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white placeholder-gray-400">
-                        </div>
-
-                        <select id="typeFilter"
-                            class="w-full px-4 py-4 text-lg bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white">
-                            <option value="">ทุกประเภท</option>
-                            <option value="vehicle">ยานพาหนะ</option>
-                            <option value="equipment">อุปกรณ์</option>
-                            <option value="staff">พนักงาน</option>
-                        </select>
-
-                        <select id="statusFilter"
-                            class="w-full px-4 py-4 text-lg bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white">
-                            <option value="">ทุกสถานะ</option>
-                            <option value="available">พร้อมใช้งาน</option>
-                            <option value="in-use">กำลังใช้งาน</option>
-                            <option value="scheduled">มีการจองแล้ว</option>
-                        </select>
-
-                        <button onclick="resetFilters()"
-                            class="w-full px-4 py-3 text-lg bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-all duration-200 hover:text-white">
-                            รีเซ็ตตัวกรอง
-                        </button>
-                    </div>
-                </div>
-
-                <!-- สถานะทรัพยากร -->
-                <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700">
-                    <h2 class="text-2xl font-bold text-white mb-6">สถานะทรัพยากร</h2>
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center p-4 bg-gray-700/50 rounded-lg border border-green-600/20">
-                            <span class="text-lg text-green-400">พร้อมใช้งาน</span>
-                            <span id="availableCount" class="text-lg text-green-400 font-semibold">0 รายการ</span>
-                        </div>
-                        <div class="flex justify-between items-center p-4 bg-gray-700/50 rounded-lg border border-yellow-600/20">
-                            <span class="text-lg text-yellow-400">มีการจองแล้ว</span>
-                            <span id="scheduledCount" class="text-lg text-yellow-400 font-semibold">0 รายการ</span>
-                        </div>
-                        <div class="flex justify-between items-center p-4 bg-gray-700/50 rounded-lg border border-red-600/20">
-                            <span class="text-lg text-red-400">กำลังใช้งาน</span>
-                            <span id="inUseCount" class="text-lg text-red-400 font-semibold">0 รายการ</span>
                         </div>
                     </div>
-                </div>
 
-                
-                
+                    <!-- ส่วนขวา -->
+                    <div class="space-y-8">
+                        <!-- ค้นหาและกรอง -->
+                        <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700">
+                            <h2 class="text-2xl font-bold text-white mb-6">ค้นหาการจอง</h2>
+                            <div class="space-y-5">
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+                                    <input type="text" id="searchInput" placeholder="ค้นหาทรัพยากร..."
+                                        class="w-full pl-12 pr-4 py-4 text-lg bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white placeholder-gray-400">
+                                </div>
+
+                                <select id="typeFilter"
+                                    class="w-full px-4 py-4 text-lg bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white">
+                                    <option value="">ทุกประเภท</option>
+                                    <option value="vehicle">ยานพาหนะ</option>
+                                    <option value="equipment">อุปกรณ์</option>
+                                    <option value="staff">พนักงาน</option>
+                                </select>
+
+                                <select id="statusFilter"
+                                    class="w-full px-4 py-4 text-lg bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white">
+                                    <option value="">ทุกสถานะ</option>
+                                    <option value="available">พร้อมใช้งาน</option>
+                                    <option value="in-use">กำลังใช้งาน</option>
+                                    <option value="scheduled">มีการจองแล้ว</option>
+                                </select>
+
+                                <button onclick="resetFilters()"
+                                    class="w-full px-4 py-3 text-lg bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-all duration-200 hover:text-white">
+                                    รีเซ็ตตัวกรอง
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- สถานะทรัพยากร -->
+                        <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700">
+                            <h2 class="text-2xl font-bold text-white mb-6">สถานะทรัพยากร</h2>
+                            <div class="space-y-4">
+                                <div
+                                    class="flex justify-between items-center p-4 bg-gray-700/50 rounded-lg border border-green-600/20">
+                                    <span class="text-lg text-green-400">พร้อมใช้งาน</span>
+                                    <span id="availableCount" class="text-lg text-green-400 font-semibold">0
+                                        รายการ</span>
+                                </div>
+                                <div
+                                    class="flex justify-between items-center p-4 bg-gray-700/50 rounded-lg border border-yellow-600/20">
+                                    <span class="text-lg text-yellow-400">มีการจองแล้ว</span>
+                                    <span id="scheduledCount" class="text-lg text-yellow-400 font-semibold">0
+                                        รายการ</span>
+                                </div>
+                                <div
+                                    class="flex justify-between items-center p-4 bg-gray-700/50 rounded-lg border border-red-600/20">
+                                    <span class="text-lg text-red-400">กำลังใช้งาน</span>
+                                    <span id="inUseCount" class="text-lg text-red-400 font-semibold">0 รายการ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -188,7 +222,8 @@
     <!-- Modal จองทรัพยากร -->
     <div id="bookingModal"
         class="hidden fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-gray-800 rounded-xl shadow-lg w-full max-w-md transform transition-all duration-300 border border-gray-700">
+        <div
+            class="bg-gray-800 rounded-xl shadow-lg w-full max-w-md transform transition-all duration-300 border border-gray-700">
             <div class="p-6">
                 <h2 id="modalTitle" class="text-2xl font-bold text-white mb-6">จองทรัพยากร</h2>
                 <form id="bookingForm" class="space-y-6">
