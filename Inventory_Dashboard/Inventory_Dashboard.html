@@ -1,107 +1,144 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Inventory Dashboard</title>
+    <meta charset="UTF-8">
+    <title>Inventory Dashboard - TravelGear</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        dark: {
-                            'bg': '#1a1a1a',
-                            'card': '#2d2d2d',
-                            'text': '#ffffff'
-                        }
-                    }
-                }
-            }
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0b1120;
+            color: #ffffff;
         }
-    </script>
+        
+        .main-content {
+            margin-left: 16rem;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 16rem;
+            height: 100vh;
+            background-color: #1a1c23;
+            z-index: 50;
+            overflow-y: auto;
+        }
+
+        .card {
+            background-color: #131b2c;
+            border-radius: 0.5rem;
+        }
+
+        .chart-container {
+            height: 400px;
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .dropdown {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            color: #ffffff;
+        }
+
+        .stats-card {
+            background-color: #131b2c;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
 </head>
-<body class="bg-gray-50 dark:bg-dark-bg transition-colors duration-200">
-    <div class="p-6 max-w-7xl mx-auto">
-        <!-- Header with Theme Toggle -->
-        <div class="mb-6 flex justify-between items-center">
-            <h1 class="text-2xl font-bold dark:text-dark-text">Inventory Dashboard</h1>
-            <button id="themeToggle" class="p-2 rounded-lg bg-gray-200 dark:bg-dark-card">
-                <!-- Sun Icon -->
-                <svg class="w-6 h-6 hidden dark:block text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="p-4 bg-white/10 border-b border-white/10">
+            <a href="#" class="flex items-center gap-2 text-lg">
+                <span class="bg-white text-gray-900 px-2 rounded">TG</span>
+                TravelGear
+            </a>
+        </div>
+        
+        <nav class="mt-4">
+            <a href="/Inventory_Dashboard/Inventory_Dashboard.html" class="flex items-center px-4 py-3 bg-white/10 text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                <!-- Moon Icon -->
-                <svg class="w-6 h-6 block dark:hidden text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-            </button>
+                <span class="ml-3">Dashboard</span>
+            </a>
+
+            <a href="/resource_booking/resource_booking.html" class="flex items-center px-4 py-3 text-gray-300 hover:bg-white/10 hover:text-white transition-colors duration-200">
+                <img src="/img/add.png" alt="Book icon" class="w-5 h-5">
+                <span class="ml-3">Booking</span>
+            </a>
+            
+            <a href="/resource_management/resource_management.html" class="flex items-center px-4 py-3 text-gray-300 hover:bg-white/10 hover:text-white transition-colors duration-200">
+                <img src="/img/add.png" alt="Add icon" class="w-5 h-5">
+                <span class="ml-3">Add Gear</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">📦 Inventory Dashboard</h1>
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <!-- Total Resources -->
-            <div class="bg-white dark:bg-dark-card p-4 rounded-lg shadow hover:shadow-md transition-all cursor-pointer">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-gray-500 dark:text-gray-400">Total Resources</div>
-                        <div class="text-2xl font-bold dark:text-dark-text">156</div>
-                    </div>
-                    <div class="bg-blue-100 dark:bg-blue-900 p-3 rounded-full">
-                        <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <!-- Total Resources Card -->
+            <div class="card p-4">
+                <div class="text-gray-400 text-sm">Total Resources</div>
+                <div class="flex justify-between items-center mt-2">
+                    <span id="totalResources" class="text-2xl font-bold">4</span>
+                    <div class="bg-blue-600/20 p-2 rounded-full">
+                        <svg class="w-6 h-6 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                         </svg>
                     </div>
                 </div>
             </div>
 
-            <!-- In Use -->
-            <div class="bg-white dark:bg-dark-card p-4 rounded-lg shadow hover:shadow-md transition-all cursor-pointer">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-gray-500 dark:text-gray-400">In Use</div>
-                        <div class="text-2xl font-bold dark:text-dark-text">89</div>
+            <!-- Other stat cards remain the same -->
+            <div class="card p-4">
+                <div class="text-gray-400 text-sm">In Use</div>
+                <div class="flex justify-between items-center mt-2">
+                    <span id="inUseCount" class="text-2xl font-bold">1</span>
+                    <div class="bg-blue-600/20 p-2 rounded-full">
+                        <svg class="w-6 h-6 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
                     </div>
-                    <div class="bg-green-100 dark:bg-green-900 p-3 rounded-full">
+                </div>
+            </div>
+
+            <div class="card p-4">
+                <div class="text-gray-400 text-sm">Available</div>
+                <div class="flex justify-between items-center mt-2">
+                    <span id="availableCount" class="text-2xl font-bold">3</span>
+                    <div class="bg-green-600/20 p-2 rounded-full">
                         <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
                     </div>
                 </div>
             </div>
 
-            <!-- Available -->
-            <div class="bg-white dark:bg-dark-card p-4 rounded-lg shadow hover:shadow-md transition-all cursor-pointer">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-gray-500 dark:text-gray-400">Available</div>
-                        <div class="text-2xl font-bold dark:text-dark-text">67</div>
-                    </div>
-                    <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-full">
-                        <svg class="w-6 h-6 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Low Stock -->
-            <div class="bg-white dark:bg-dark-card p-4 rounded-lg shadow hover:shadow-md transition-all cursor-pointer">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-gray-500 dark:text-gray-400">Low Stock Items</div>
-                        <div class="text-2xl font-bold dark:text-dark-text">12</div>
-                    </div>
-                    <div class="bg-yellow-100 dark:bg-yellow-900 p-3 rounded-full">
+            <div class="card p-4">
+                <div class="text-gray-400 text-sm">Low Stock Items</div>
+                <div class="flex justify-between items-center mt-2">
+                    <span id="lowStockCount" class="text-2xl font-bold">0</span>
+                    <div class="bg-yellow-600/20 p-2 rounded-full">
                         <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                         </svg>
                     </div>
                 </div>
@@ -109,308 +146,69 @@
         </div>
 
         <!-- Charts and Alerts Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Resource Usage Trends -->
-            <div class="bg-white dark:bg-dark-card p-6 rounded-lg shadow-sm">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-semibold dark:text-dark-text">Resource Usage Trends</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div class="lg:col-span-2 card p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-semibold">Resource Usage Trends</h2>
                     <div class="flex gap-2">
-                        <select id="periodSelector" class="border dark:border-gray-600 rounded-md px-2 py-1 bg-white dark:bg-dark-card dark:text-dark-text">
-                            <option value="firstHalf">First Half (Jan-Jun)</option>
-                            <option value="secondHalf">Second Half (Jul-Dec)</option>
+                        <select id="periodSelect" class="bg-[#1f2937] border border-gray-700 rounded px-3 py-1.5 text-sm">
+                            <option>First Half (Jan-Jun)</option>
+                            <option>Second Half (Jul-Dec)</option>
                         </select>
-                        <select id="chartType" class="border dark:border-gray-600 rounded-md px-2 py-1 bg-white dark:bg-dark-card dark:text-dark-text">
-                            <option value="line">Line Chart</option>
-                            <option value="bar">Bar Chart</option>
-                            <option value="doughnut">Doughnut Chart</option>
-                            <option value="pie">Pie Chart</option>
+                        <select id="chartTypeSelect" class="bg-[#1f2937] border border-gray-700 rounded px-3 py-1.5 text-sm">
+                            <option>Line Chart</option>
+                            <option>Bar Chart</option>
                         </select>
                     </div>
                 </div>
-
-                <div class="flex items-center gap-4 mb-4 text-sm">
-                    <div class="flex items-center gap-2">
-                        <span class="inline-block w-4 h-2 bg-indigo-500 rounded"></span>
-                        <span class="dark:text-dark-text">Vehicles</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="inline-block w-4 h-2 bg-green-500 rounded"></span>
-                        <span class="dark:text-dark-text">Equipment</span>
-                    </div>
-                </div>
-
-                <div class="h-[300px]">
+                <div class="h-[300px] relative">
                     <canvas id="usageChart"></canvas>
                 </div>
             </div>
 
-            <!-- Low Stock Alerts -->
-            <div class="bg-white dark:bg-dark-card p-6 rounded-lg shadow-sm">
-                <h2 class="text-lg font-semibold mb-4 flex items-center gap-2 dark:text-dark-text">
+            <div class="card p-6">
+                <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
                     Low Stock Alerts
                 </h2>
-
-                <div class="space-y-3">
-                    <div class="bg-yellow-50 dark:bg-yellow-900/30 p-3 pl-4 border-l-4 border-yellow-400 rounded">
-                        <div class="flex justify-between items-center">
-                            <span class="dark:text-dark-text">Life Jackets</span>
-                            <span class="text-sm dark:text-gray-400">5/10 remaining</span>
-                        </div>
-                    </div>
-                    <div class="bg-yellow-50 dark:bg-yellow-900/30 p-3 pl-4 border-l-4 border-yellow-400 rounded">
-                        <div class="flex justify-between items-center">
-                            <span class="dark:text-dark-text">First Aid Kits</span>
-                            <span class="text-sm dark:text-gray-400">3/8 remaining</span>
-                        </div>
-                    </div>
-                    <div class="bg-yellow-50 dark:bg-yellow-900/30 p-3 pl-4 border-l-4 border-yellow-400 rounded">
-                        <div class="flex justify-between items-center">
-                            <span class="dark:text-dark-text">GPS Devices</span>
-                            <span class="text-sm dark:text-gray-400">2/5 remaining</span>
-                        </div>
-                    </div>
+                <div id="alertsContainer" class="space-y-3">
+                    <!-- Alerts will be populated by JavaScript -->
                 </div>
             </div>
         </div>
 
         <!-- Recent Activities -->
-        <div class="mt-6">
-            <div class="bg-white dark:bg-dark-card rounded-lg shadow-sm p-6">
-                <h2 class="text-lg font-semibold mb-4 dark:text-dark-text">Recent Activities</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                        <thead>
-                            <tr class="text-left text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
-                                <th class="pb-3">Resource</th>
-                                <th class="pb-3">Action</th>
-                                <th class="pb-3">Staff</th>
-                                <th class="pb-3">Status</th>
-                                <th class="pb-3">Time</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y dark:divide-gray-700">
-                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                <td class="py-3 dark:text-dark-text">Tourist Bus #103</td>
-                                <td class="py-3 dark:text-dark-text">Checked out</td>
-                                <td class="py-3 dark:text-dark-text">John Smith</td>
-                                <td class="py-3">
-                                    <span class="px-3 py-1 rounded-full text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                                        In Use
-                                    </span>
-                                </td>
-                                <td class="py-3 text-gray-500 dark:text-gray-400">2 minutes ago</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination -->
-                <div class="mt-6 flex items-center justify-between">
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                        Showing 1 to 4 of 50 entries
-                    </div>
-                    <div class="flex gap-2">
-                        <button class="px-3 py-1 border dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-dark-text" disabled>
-                            Previous
-                        </button>
-                        <button class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
-                            1
-                        </button>
-                        <button class="px-3 py-1 border dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-dark-text">
-                            2
-                        </button>
-                        <button class="px-3 py-1 border dark:border-gray-700 rounded hover:2
-                    </button>
-                    <button class="px-3 py-1 border dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-dark-text">
-                        3
-                    </button>
-                    <button class="px-3 py-1 border dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-dark-text">
-                        Next
-                    </button>
+        <div class="card p-6">
+            <h2 class="text-lg font-semibold mb-4">Recent Activities</h2>
+            <table class="w-full">
+                <thead>
+                    <tr class="text-left text-gray-400">
+                        <th class="pb-3">Resource</th>
+                        <th class="pb-3">Action</th>
+                        <th class="pb-3">Staff</th>
+                        <th class="pb-3">Status</th>
+                        <th class="pb-3">Time</th>
+                    </tr>
+                </thead>
+                <tbody id="activitiesTable">
+                    <!-- Activities will be populated by JavaScript -->
+                </tbody>
+            </table>
+            <div class="mt-4 flex justify-between items-center text-sm text-gray-400">
+                <span>Showing 1 to 4 of 50 entries</span>
+                <div class="flex gap-1">
+                    <button class="px-3 py-1 rounded bg-gray-700/50">Previous</button>
+                    <button class="px-3 py-1 rounded bg-blue-500">1</button>
+                    <button class="px-3 py-1 rounded bg-gray-700/50">2</button>
+                    <button class="px-3 py-1 rounded bg-gray-700/50">3</button>
+                    <button class="px-3 py-1 rounded bg-gray-700/50">Next</button>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    // Chart Data Configuration
-    const chartData = {
-        firstHalf: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [
-                {
-                    label: 'Vehicles',
-                    data: [65, 75, 85, 78, 82, 80],
-                    borderColor: 'rgb(99, 102, 241)',
-                    backgroundColor: 'rgb(99, 102, 241)',
-                    tension: 0.1,
-                    pointRadius: 4,
-                    pointBackgroundColor: 'white',
-                    pointBorderWidth: 2,
-                },
-                {
-                    label: 'Equipment',
-                    data: [85, 88, 92, 80, 85, 88],
-                    borderColor: 'rgb(34, 197, 94)',
-                    backgroundColor: 'rgb(34, 197, 94)',
-                    tension: 0.1,
-                    pointRadius: 4,
-                    pointBackgroundColor: 'white',
-                    pointBorderWidth: 2,
-                }
-            ]
-        },
-        secondHalf: {
-            labels: ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-            datasets: [
-                {
-                    label: 'Vehicles',
-                    data: [83, 88, 85, 76, 72, 70],
-                    borderColor: 'rgb(99, 102, 241)',
-                    backgroundColor: 'rgb(99, 102, 241)',
-                    tension: 0.1,
-                    pointRadius: 4,
-                    pointBackgroundColor: 'white',
-                    pointBorderWidth: 2,
-                },
-                {
-                    label: 'Equipment',
-                    data: [90, 92, 88, 82, 78, 75],
-                    borderColor: 'rgb(34, 197, 94)',
-                    backgroundColor: 'rgb(34, 197, 94)',
-                    tension: 0.1,
-                    pointRadius: 4,
-                    pointBackgroundColor: 'white',
-                    pointBorderWidth: 2,
-                }
-            ]
-        }
-    };
-
-    // Chart variable and options
-    let chart;
-    const getChartOptions = (isDark) => ({
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true,
-                max: 100,
-                grid: {
-                    color: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
-                },
-                ticks: {
-                    color: isDark ? '#fff' : '#666'
-                }
-            },
-            x: {
-                grid: {
-                    display: false
-                },
-                ticks: {
-                    color: isDark ? '#fff' : '#666'
-                }
-            }
-        },
-        plugins: {
-            legend: {
-                display: false
-            }
-        }
-    });
-
-    // Theme management
-    function toggleTheme() {
-        const html = document.documentElement;
-        const isDark = html.classList.contains('dark');
-        
-        if (isDark) {
-            html.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-        } else {
-            html.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-        }
-
-        // Update chart theme
-        if (chart) {
-            chart.options = getChartOptions(!isDark);
-            chart.update();
-        }
-    }
-
-    function initializeTheme() {
-        const theme = localStorage.getItem('theme') || 'light';
-        if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-        }
-        createChart(
-            document.getElementById('chartType').value,
-            document.getElementById('periodSelector').value,
-            theme === 'dark'
-        );
-    }
-
-    // Chart functions
-    function createChart(type, period, isDark) {
-        const ctx = document.getElementById('usageChart').getContext('2d');
-        
-        if (chart) {
-            chart.destroy();
-        }
-
-        chart = new Chart(ctx, {
-            type: type,
-            data: chartData[period],
-            options: getChartOptions(isDark)
-        });
-    }
-
-    // Event Listeners
-    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-
-    document.getElementById('periodSelector').addEventListener('change', (e) => {
-        createChart(
-            document.getElementById('chartType').value,
-            e.target.value,
-            document.documentElement.classList.contains('dark')
-        );
-    });
-
-    document.getElementById('chartType').addEventListener('change', (e) => {
-        createChart(
-            e.target.value,
-            document.getElementById('periodSelector').value,
-            document.documentElement.classList.contains('dark')
-        );
-    });
-
-    // Initialize the dashboard
-    initializeTheme();
-
-    // Add hover effects for cards and table rows
-    document.querySelectorAll('.cursor-pointer').forEach(card => {
-        card.addEventListener('click', function() {
-            this.classList.add('shadow-lg');
-            setTimeout(() => {
-                this.classList.remove('shadow-lg');
-            }, 300);
-        });
-    });
-
-    document.querySelectorAll('tbody tr').forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.classList.add('bg-gray-50', 'dark:bg-gray-800/50');
-        });
-        row.addEventListener('mouseleave', function() {
-            this.classList.remove('bg-gray-50', 'dark:bg-gray-800/50');
-        });
-    });
-</script>
+    <script src="Inventory_Dashboard.js"></script>
 </body>
 </html>
